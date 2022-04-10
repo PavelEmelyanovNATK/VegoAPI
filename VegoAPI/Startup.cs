@@ -31,11 +31,13 @@ namespace VegoAPI
         {
             services.AddDbContext<VegoCityServerDBContext>(options => options
             .UseLazyLoadingProxies()
-            .UseSqlServer(Configuration.GetConnectionString("VegoDBString")
-            ));
+            .UseSqlServer(Configuration.GetConnectionString("VegoDBString"))
+            );
 
             services.AddControllers();
             services.AddProductsRepository();
+            services.AddProductTypesRepository();
+            services.AddPhotosHandler();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

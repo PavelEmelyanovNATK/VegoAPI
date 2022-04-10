@@ -1,0 +1,71 @@
+﻿{
+   "CodeGenerationMode": 2,
+   "ContextClassName": "VegoCityServerDBContext",
+   "ContextNamespace": "VegoAPI.Services.DBContext",
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": "VegoAPI.Models.DBEntities",
+   "OutputContextPath": "Services\/DBContext",
+   "OutputPath": "Models\/DBEntities",
+   "ProjectRootNamespace": "VegoAPI",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "[dbo].[DeliveryTypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Orders]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PhotoToProduct]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ProductMainPhotos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ProductPhotos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Products]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ProductsToOrder]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ProductTypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PromoCodes]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "NHPC\\SQLEXPRESS.VegoCityServerDB",
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoConstructor": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSpatial": false
+}

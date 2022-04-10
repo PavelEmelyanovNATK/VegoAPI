@@ -5,25 +5,34 @@ using VegoAPI.Models.RequestModels;
 using VegoAPI.Services.ProductsRepository;
 using VegoAPI.Services.ProductTypesRepository;
 using VegoAPI.Utils;
+using System.Drawing.Imaging;
+using System.Drawing;
+using System.IO;
+using System.Drawing.Drawing2D;
+using Microsoft.AspNetCore.Hosting;
+using VegoAPI.Services.PhotosHandler;
 
 namespace VegoAPI.Controllers
 {
-    [ApiController]
+    
     [Route("managment")]
     public class ManagmentController : ControllerBase
     {
         private readonly IProductsRepository _productsRepository;
         private readonly IProductTypesRepository _productTypesRepository;
+        private readonly IPhotosHandler _photosHandler;
 
         public ManagmentController(
-            IProductsRepository productsRepository, 
-            IProductTypesRepository productTypesRepository)
+            IProductsRepository productsRepository,
+            IProductTypesRepository productTypesRepository, 
+            IPhotosHandler photosHandler)
         {
             _productsRepository = productsRepository;
             _productTypesRepository = productTypesRepository;
+            _photosHandler = photosHandler;
         }
 
-        [HttpPost("add-product-info")]
+        [HttpPost("add-product")]
         public async Task<IActionResult> AddProduct([FromBody] AddProductRequest addProductRequest)
         {
             try
@@ -58,6 +67,11 @@ namespace VegoAPI.Controllers
         {
             try
             {
+                var productPhotosPaths = await _productsRepository.GetProductPhotosPaths(id);
+
+                foreach (var path in productPhotosPaths)
+                    await _photosHandler.DeleteProductPhoto(path);
+
                 await _productsRepository.DeleteProductAsync(id);
             }
             catch (Exception ex)
@@ -68,7 +82,7 @@ namespace VegoAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("add-product-type")]
+        [HttpPost("add-category")]
         public async Task<IActionResult> AddProductType([FromBody] AddProductTypeRequest addProductTypeRequest)
         {
             try
@@ -83,7 +97,7 @@ namespace VegoAPI.Controllers
             return Ok();
         }
 
-        [HttpPut("edit-product-type")]
+        [HttpPut("edit-category")]
         public async Task<IActionResult> EditProductType([FromBody] EditEntityRequest editProductTypeRequest)
         {
             try
@@ -98,7 +112,7 @@ namespace VegoAPI.Controllers
             return Ok();
         }
 
-        [HttpDelete("delete-product-type/{id}")]
+        [HttpDelete("delete-category/{id}")]
         public async Task<IActionResult> DeleteProductType(int id)
         {
             try
@@ -109,6 +123,42 @@ namespace VegoAPI.Controllers
             {
                 return BadRequest(ex.Message.WrapToArray());
             }
+
+            return Ok();
+        }
+
+        [HttpPost("load-product-main-photo")]
+        public async Task<IActionResult> LoadProductMainPhoto([FromForm] LoadProductImageRequest loadProductImageRequest)
+        {
+            if (await _productsRepository.GetProductByIdAsync(loadProductImageRequest.ProductId) is null)
+                return BadRequest("Товара не существует");
+
+            if (loadProductImageRequest.ImageFile.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            var paths = await _photosHandler.SaveProductPhoto(loadProductImageRequest);
+
+            await _productsRepository.LoadProductMainPhotoAsync(loadProductImageRequest.ProductId, paths.Item1, paths.Item2);
+
+            return Ok();
+        }
+
+        [HttpPost("load-product-photo")]
+        public async Task<IActionResult> LoadProductPhoto([FromForm] LoadProductImageRequest loadProductImageRequest)
+        {
+            if (await _productsRepository.GetProductByIdAsync(loadProductImageRequest.ProductId) is null)
+                return BadRequest("Товара не существует");
+
+            if (loadProductImageRequest.ImageFile.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            var paths = await _photosHandler.SaveProductPhoto(loadProductImageRequest);
+
+            await _productsRepository.LoadProductPhotoAsync(loadProductImageRequest.ProductId, paths.Item1, paths.Item2);
 
             return Ok();
         }

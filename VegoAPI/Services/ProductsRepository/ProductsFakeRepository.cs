@@ -2,10 +2,11 @@
 using System.Threading.Tasks;
 using VegoAPI.Models.RequestModels;
 using VegoAPI.Models.ResponseModels;
+using VegoAPI.Utils;
 
 namespace VegoAPI.Services.ProductsRepository
 {
-    public class ProductsFakeRepository : IProductsRepository
+    public class ProductsFakeRepository
     {
         private readonly ProductShortResponse[] _products = new[]
         {
@@ -60,8 +61,19 @@ namespace VegoAPI.Services.ProductsRepository
             => await Task.FromResult(_products);
         
 
-        public async Task<ProductShortResponse> GetProductByIdAsync(int id)
-            => await Task.FromResult(_products.FirstOrDefault(p => p.Id == id));
-        
+        public async Task<ProductDetailResponse> GetProductByIdAsync(int id)
+            => await Task.FromResult(_products
+                .FirstOrDefault(p => p.Id == id)
+                ?.Let(p => 
+                new ProductDetailResponse
+                {
+                    Id = p.Id
+
+                }));
+
+        public async Task<ProductShortResponse[]> GetProductsByCategoriesAsync(int[] categoriesIds)
+        {
+            return await Task.FromResult(_products);
+        }
     }
 }

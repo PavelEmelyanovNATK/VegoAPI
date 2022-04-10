@@ -22,6 +22,8 @@ namespace VegoAPI.VegoAPI.Services.DBContext
         public virtual DbSet<DeliveryType> DeliveryTypes { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<ProductMainPhoto> ProductMainPhotos { get; set; }
+        public virtual DbSet<ProductPhoto> ProductPhotos { get; set; }
         public virtual DbSet<ProductType> ProductTypes { get; set; }
         public virtual DbSet<ProductsToOrder> ProductsToOrders { get; set; }
         public virtual DbSet<PromoCode> PromoCodes { get; set; }
@@ -99,11 +101,63 @@ namespace VegoAPI.VegoAPI.Services.DBContext
                     .HasConstraintName("FK_Products_ProductTypes");
             });
 
+            modelBuilder.Entity<ProductMainPhoto>(entity =>
+            {
+                entity.HasKey(e => e.ProductId)
+                    .HasName("PK_Table_1");
+
+                entity.Property(e => e.ProductId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("ProductID");
+
+                entity.Property(e => e.PhotoId).HasColumnName("PhotoID");
+
+                entity.HasOne(d => d.Photo)
+                    .WithMany(p => p.ProductMainPhotos)
+                    .HasForeignKey(d => d.PhotoId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Table_1_ProductPhotos");
+
+                entity.HasOne(d => d.Product)
+                    .WithOne(p => p.ProductMainPhoto)
+                    .HasForeignKey<ProductMainPhoto>(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Table_1_Products");
+            });
+
+            modelBuilder.Entity<ProductPhoto>(entity =>
+            {
+                entity.HasKey(e => e.Guid);
+
+                entity.Property(e => e.Guid)
+                    .ValueGeneratedNever()
+                    .HasColumnName("GUID");
+
+                entity.Property(e => e.HighResPhotoPath).IsRequired();
+
+                entity.Property(e => e.LowResPhotoPath).IsRequired();
+
+                entity.HasMany(d => d.Products)
+                    .WithMany(p => p.Photos)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "PhotoToProduct",
+                        l => l.HasOne<Product>().WithMany().HasForeignKey("ProductId").OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_PhotoToProduct_Products"),
+                        r => r.HasOne<ProductPhoto>().WithMany().HasForeignKey("PhotoId").OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_PhotoToProduct_ProductPhotos"),
+                        j =>
+                        {
+                            j.HasKey("PhotoId", "ProductId");
+
+                            j.ToTable("PhotoToProduct");
+
+                            j.IndexerProperty<Guid>("PhotoId").HasColumnName("PhotoID");
+
+                            j.IndexerProperty<int>("ProductId").HasColumnName("ProductID");
+                        });
+            });
+
             modelBuilder.Entity<ProductType>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .ValueGeneratedNever()
-                    .HasColumnName("ID");
+                entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.Name)
                     .IsRequired()

@@ -22,7 +22,7 @@ namespace VegoAPI.Services.ProductTypesRepository
         {
             var productType = new ProductType
             {
-                Name = addProductRequest.Name,
+                Name = addProductRequest.Name
             };
 
             await _dao.ProductTypes.AddAsync(productType);
@@ -47,7 +47,7 @@ namespace VegoAPI.Services.ProductTypesRepository
             if (productType is null)
                 return;
 
-            editProductTypeRequest.ChangedFields["name"]
+            editProductTypeRequest.ChangedFields["Name"]
             ?.Let(name => productType.Name = name);
 
             await _dao.SaveChangesAsync();
@@ -69,6 +69,7 @@ namespace VegoAPI.Services.ProductTypesRepository
 
             return new ProductTypeResponse 
             { 
+                Id = productType.Id,
                 Name = productType.Name 
             };
         }
