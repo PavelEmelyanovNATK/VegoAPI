@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VegoAPI.Models.RequestModels
 {
-    public class EditEntityRequest
+    public class EditEntityWithIntIdRequest
     {
         [Required]
         public int EntityId { get; set; }

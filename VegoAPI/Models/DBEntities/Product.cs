@@ -9,22 +9,20 @@ namespace VegoAPI.VegoAPI.Models.DBEntities
     {
         public Product()
         {
+            ProductPhotos = new HashSet<ProductPhoto>();
             ProductsToOrders = new HashSet<ProductsToOrder>();
-            Photos = new HashSet<ProductPhoto>();
         }
 
-        public int Id { get; set; }
-        public int ProductTypeId { get; set; }
+        public int CategoryId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public double Price { get; set; }
-        public string LowImagePath { get; set; }
-        public string HighImagePath { get; set; }
+        public Guid Id { get; set; }
+        public Guid? MainPhotoId { get; set; }
+        public bool IsActive { get; set; }
 
-        public virtual ProductType ProductType { get; set; }
-        public virtual ProductMainPhoto ProductMainPhoto { get; set; }
+        public virtual Category Category { get; set; }
+        public virtual ICollection<ProductPhoto> ProductPhotos { get; set; }
         public virtual ICollection<ProductsToOrder> ProductsToOrders { get; set; }
-
-        public virtual ICollection<ProductPhoto> Photos { get; set; }
     }
 }

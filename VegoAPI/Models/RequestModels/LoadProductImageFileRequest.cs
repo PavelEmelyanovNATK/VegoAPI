@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace VegoAPI.Models.RequestModels
 {
-    public class LoadProductImageRequest
+    public class LoadProductImageFileRequest
     {
         [Required]
-        public int ProductId { get; set; }
+        public Guid ProductId { get; set; }
         [Required]
         public IFormFile ImageFile { get; set; }
     }

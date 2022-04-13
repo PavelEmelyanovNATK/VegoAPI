@@ -15,57 +15,65 @@ namespace VegoAPI.Services.ProductsRepository
     {
         private readonly VegoCityServerDBContext _dao;
 
+        private const int PHOTOS_PER_PAGE = 20;
+
         public ProductsRealRepository(VegoCityServerDBContext dao)
         {
             _dao = dao;
         }
 
-        public async Task AddProductAsync(AddProductRequest addProductRequest)
+        public async Task<Guid> AddProductAsync(AddProductRequest addProductRequest)
         {
             var product = new Product
             {
+                Id = Guid.NewGuid(),
                 Title = addProductRequest.Title,
-                ProductTypeId = addProductRequest.ProductTypeId,
+                CategoryId = addProductRequest.ProductTypeId,
                 Price = addProductRequest.Price,
                 Description = addProductRequest.Description
             };
 
             await _dao.Products.AddAsync(product);
             await _dao.SaveChangesAsync();
+
+            return product.Id;
         }
 
-        public async Task LoadProductPhotoAsync(int productId, string lowResPhotoPath, string highResPhotoPath)
+        public async Task<Guid> AddProductPhotoAsync(AddProductPhotoRequest addProductImageRequest)
         {
-            var product = await _dao.Products.FindAsync(productId);
+            var product = await _dao.Products.FindAsync(addProductImageRequest.ProductId);
 
             if (product is null)
-                return;
+                throw new Exception("Продукта не существует");
 
-
-            product.Photos.Add(new ProductPhoto
+            var photo = new ProductPhoto
             {
-                Guid = Guid.NewGuid(),
-                LowResPhotoPath = lowResPhotoPath,
-                HighResPhotoPath = highResPhotoPath
-            });
+                Id = Guid.NewGuid(),
+                LowResPhotoPath = addProductImageRequest.LowImagePath,
+                HighResPhotoPath = addProductImageRequest.HighImagePath
+            };
+
+            product.ProductPhotos.Add(photo);
 
             await _dao.SaveChangesAsync();
+
+            return photo.Id;
         }
 
-        public async Task DeleteProductAsync(int id)
+        public async Task DeleteProductAsync(Guid id)
         {
             var product = await _dao.Products.FindAsync(id);
 
             if (product is null) return;
 
-            _dao.ProductMainPhotos.Remove(product.ProductMainPhoto);
-            var photos = product.Photos.ToArray();
+            var photos = product.ProductPhotos.ToArray();
+
             _dao.ProductPhotos.RemoveRange(photos);
             _dao.Products.Remove(product);
             await _dao.SaveChangesAsync();
         }
 
-        public async Task EditProductInfoAsync(EditEntityRequest editProductRequest)
+        public async Task EditProductInfoAsync(EditEntityWithGuidRequest editProductRequest)
         {
             var product = await _dao.Products.FindAsync(editProductRequest.EntityId);
 
@@ -76,7 +84,7 @@ namespace VegoAPI.Services.ProductsRepository
             ?.Let(title => product.Title = title);
 
             editProductRequest.ChangedFields.GetValueOrDefault("CategoryId")
-            ?.Let(productTypeId => product.ProductTypeId = Convert.ToInt32(productTypeId));
+            ?.Let(productTypeId => product.CategoryId = Convert.ToInt32(productTypeId));
 
             editProductRequest.ChangedFields.GetValueOrDefault("Price")
             ?.Let(price => product.Price = Convert.ToDouble(price));
@@ -84,28 +92,37 @@ namespace VegoAPI.Services.ProductsRepository
             editProductRequest.ChangedFields.GetValueOrDefault("Description")
             ?.Let(description => product.Description = description);
 
+            editProductRequest.ChangedFields.GetValueOrDefault("IsActive")
+            ?.Let(accesebility => product.IsActive = Convert.ToBoolean(accesebility));
+
             await _dao.SaveChangesAsync();
         }
 
         public async Task<ProductShortResponse[]> GetAllProductsAsync()
-            => await _dao.Products.Select(p => 
-            new ProductShortResponse
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Category = p.ProductType.Name,
-                CategoryId = p.ProductTypeId,
-                Price = p.Price,
-                IsActive = true,
-                ImagePath = p.ProductMainPhoto == null
-                    ? ""
-                    : p.ProductMainPhoto.Photo == null
-                    ? ""
-                    : @"http://26.254.208.125:3000/products/get-photo-low/" + p.ProductMainPhoto.PhotoId
-            })
-            .ToArrayAsync();
+        {
+            var products = await _dao.Products.ToArrayAsync();
+            var productsCount = products.Length;
 
-        public async Task<ProductDetailResponse> GetProductByIdAsync(int id)
+            var productsResponse = new ProductShortResponse[productsCount];
+
+            for (int i = 0; i < productsCount; i++)
+                productsResponse[i] = new ProductShortResponse
+                {
+                    Id = products[i].Id,
+                    Title = products[i].Title,
+                    Category = products[i].Category.Name,
+                    CategoryId = products[i].CategoryId,
+                    Price = products[i].Price,
+                    IsActive = true,
+                    ImagePath = products[i].MainPhotoId == null
+                    ? ""
+                    : (await _dao.ProductPhotos.FindAsync(products[i].MainPhotoId)).LowResPhotoPath
+                };
+
+            return productsResponse;
+        }
+
+        public async Task<ProductDetailResponse> GetProductByIdAsync(Guid id)
         { 
             var product = await _dao.Products.FindAsync(id);
 
@@ -116,147 +133,157 @@ namespace VegoAPI.Services.ProductsRepository
             {
                 Id = product.Id,
                 Title = product.Title,
-                Category = product.ProductType.Name,
-                CategoryId = product.ProductTypeId,
+                Category = product.Category.Name,
+                CategoryId = product.CategoryId,
                 Description = product.Description,
                 Price = product.Price,
-                IsActive = true,
-                ImagePath = product.ProductMainPhoto == null
-                    ? ""
-                    : product.ProductMainPhoto.Photo == null
-                    ? ""
-                    : @"http://26.254.208.125:3000/products/get-photo-high/" + product.ProductMainPhoto.PhotoId
+                IsActive = product.IsActive,
+                Photos = product.ProductPhotos.Select(p => 
+                new PhotoResponse 
+                { 
+                    PhotoId = p.Id, 
+                    LowResPath = p.LowResPhotoPath,
+                    HighResPath = p.HighResPhotoPath
+                })
+                .ToArray(),
+                MainPhotoId = product.MainPhotoId
             };
         }
-
-        public async Task<byte[]> GetProductLowPhoto(Guid photoId)
-        {
-            var photo = await _dao.ProductPhotos.FindAsync(photoId);
-
-            var photoBytes = await System.IO.File.ReadAllBytesAsync(photo.LowResPhotoPath);
-
-            return photoBytes;
-        }
-
         public async Task<ProductShortResponse[]> GetProductsByCategoriesAsync(int[] categoriesIds)
         {
-            IQueryable<Product> products;
+            Product[] products;
 
             if (categoriesIds.Length > 0)
-                products = _dao.Products.Where(p => categoriesIds.Contains(p.ProductTypeId));
+                products = await _dao.Products.Where(p => categoriesIds.Contains(p.CategoryId)).ToArrayAsync();
             else
-                products = _dao.Products;
+                products = await _dao.Products.ToArrayAsync();
 
-            return await products.Select(p =>
-            new ProductShortResponse
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Category = p.ProductType.Name,
-                CategoryId = p.ProductTypeId,
-                Price = p.Price,
-                IsActive = true,
-                ImagePath = p.ProductMainPhoto == null
-                    ? null
-                    : p.ProductMainPhoto.Photo == null
-                    ? null
-                    : @"http://26.254.208.125:3000/products/get-photo-low/" + p.ProductMainPhoto.PhotoId
-            })
-            .ToArrayAsync();
+            var productsCount = products.Length;
+
+            var productsResponse = new ProductShortResponse[productsCount];
+
+            for (int i = 0; i < productsCount; i++)
+                productsResponse[i] = new ProductShortResponse
+                {
+                    Id = products[i].Id,
+                    Title = products[i].Title,
+                    Category = products[i].Category.Name,
+                    CategoryId = products[i].CategoryId,
+                    Price = products[i].Price,
+                    IsActive = products[i].IsActive,
+                    ImagePath = products[i].MainPhotoId == null
+                    ? ""
+                    : (await _dao.ProductPhotos.FindAsync(products[i].MainPhotoId))?.LowResPhotoPath ?? ""
+                };
+
+            return productsResponse;
         }
 
         public async Task<ProductShortResponse[]> GetProductsWithFilterAsync(FilteredProductsRequest filteredProductsRequest)
         {
-            IQueryable<Product> products;
+            Product[] products;
 
             if (filteredProductsRequest.CategoriesIds is not null && filteredProductsRequest.CategoriesIds.Length > 0)
-                products = _dao.Products.Where(p => 
-                filteredProductsRequest.CategoriesIds.Contains(p.ProductTypeId) && p.Title.Contains(filteredProductsRequest.Filter));
+                products = await _dao.Products.Where(p => 
+                filteredProductsRequest.CategoriesIds.Contains(p.CategoryId) && p.Title.Contains(filteredProductsRequest.Filter))
+                    .ToArrayAsync();
             else
-                products = _dao.Products.Where(p => p.Title.Contains(filteredProductsRequest.Filter ?? ""));
+                products = await _dao.Products.Where(p => p.Title.Contains(filteredProductsRequest.Filter ?? "")).ToArrayAsync();
 
-            return await products
-                .Select(p =>
-                new ProductShortResponse
+            var productsCount = products.Length;
+
+            var productsResponse = new ProductShortResponse[productsCount];
+
+            for (int i = 0; i < productsCount; i++)
+                productsResponse[i] = new ProductShortResponse
                 {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Category = p.ProductType.Name,
-                    CategoryId = p.ProductTypeId,
-                    Price = p.Price,
-                    IsActive = true,
-                    ImagePath =  p.ProductMainPhoto == null 
+                    Id = products[i].Id,
+                    Title = products[i].Title,
+                    Category = products[i].Category.Name,
+                    CategoryId = products[i].CategoryId,
+                    Price = products[i].Price,
+                    IsActive = products[i].IsActive,
+                    ImagePath = products[i].MainPhotoId == null
                     ? ""
-                    : p.ProductMainPhoto.Photo == null
-                    ? ""
-                    : @"http://26.254.208.125:3000/products/get-photo-low/" + p.ProductMainPhoto.PhotoId
-                })
-                .ToArrayAsync();
+                    : (await _dao.ProductPhotos.FindAsync(products[i].MainPhotoId))?.LowResPhotoPath ?? ""
+                };
+
+            return productsResponse;
         }
 
-        public async Task SetProductMainPhotoAsync(int productId, Guid photoId)
+        public async Task SetProductMainPhotoAsync(ProductToPhotoRequest setProductMainPhotoRequest)
         {
-            var product = await _dao.Products.FindAsync(productId);
+            var product = await _dao.Products.FindAsync(setProductMainPhotoRequest.ProductId);
 
             if (product is null)
                 return;
 
-            product.ProductMainPhoto.PhotoId = photoId;
+            var photo = product.ProductPhotos.FirstOrDefault(p => p.Id == setProductMainPhotoRequest.PhotoId);
 
-            await _dao.SaveChangesAsync();
-        }
-
-        public async Task LoadProductMainPhotoAsync(int productId, string lowResPhotoPath, string highResPhotoPath)
-        {
-            var product = await _dao.Products.FindAsync(productId);
-
-            if (product is null)
+            if (photo is null)
                 return;
 
-            product.ProductMainPhoto = new ProductMainPhoto
-            {
-                Photo = new ProductPhoto
-                {
-                    Guid = Guid.NewGuid(),
-                    LowResPhotoPath = lowResPhotoPath,
-                    HighResPhotoPath = highResPhotoPath
-                }
-            };
+            product.MainPhotoId = photo.Id;
 
             await _dao.SaveChangesAsync();
         }
 
-        public async Task RemoveProductPhotoAsync(Guid photoId)
+        public async Task DeleteProductPhotoAsync(Guid photoId)
         {
             var photo = await _dao.ProductPhotos.FindAsync(photoId);
             if (photo is null)
                 return;
 
-            var mainPhotos = photo.ProductMainPhotos.ToArray();
-            _dao.ProductMainPhotos.RemoveRange(mainPhotos);
             _dao.ProductPhotos.Remove(photo);
             await _dao.SaveChangesAsync();
         }
 
-        public async Task<string[]> GetProductPhotosPaths(int productId)
+        public async Task<PhotoResponse[]> GetAllProductPhotosAsync(Guid productId)
         {
             var product = await _dao.Products.FindAsync(productId);
-            if (product is null)
-                return Array.Empty<string>();
 
-            return product.Photos
-                .Select(pl => pl.LowResPhotoPath)
-                .Union(product.Photos.Select(ph => ph.HighResPhotoPath))
-                .ToArray();
+            if (product is null)
+                throw new Exception("Товара не существует");
+
+            return product.ProductPhotos.Select(p =>
+            new PhotoResponse
+            {
+                PhotoId = p.Id,
+                LowResPath = p.LowResPhotoPath,
+                HighResPath = p.HighResPhotoPath
+            })
+            .ToArray();
         }
 
-        public async Task<byte[]> GetProductHighPhoto(Guid photoId)
+        public Task<PhotoResponse[]> GetAllProductPhotosAsync(int page)
         {
-            var photo = await _dao.ProductPhotos.FindAsync(photoId);
+            if (page < 1)
+                page = 1;
 
-            var photoBytes = await System.IO.File.ReadAllBytesAsync(photo.HighResPhotoPath);
+            return _dao.ProductPhotos
+                .Skip((page-1)*PHOTOS_PER_PAGE)
+                .Take(PHOTOS_PER_PAGE)
+                .Select(p =>
+                new PhotoResponse
+                {
+                    PhotoId = p.Id,
+                    LowResPath = p.LowResPhotoPath,
+                    HighResPath = p.HighResPhotoPath
+                })
+                .ToArrayAsync();
+        }
 
-            return photoBytes;
+        public Task<PhotoResponse[]> GetAllProductPhotosAsync()
+        {
+            return _dao.ProductPhotos
+                .Select(p =>
+                new PhotoResponse
+                {
+                    PhotoId = p.Id,
+                    LowResPath = p.LowResPhotoPath,
+                    HighResPath = p.HighResPhotoPath
+                })
+                .ToArrayAsync();
         }
     }
 }

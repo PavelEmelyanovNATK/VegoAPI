@@ -10,16 +10,15 @@ namespace VegoAPI.Services.ProductsRepository
         Task<ProductShortResponse[]> GetAllProductsAsync();
         Task<ProductShortResponse[]> GetProductsByCategoriesAsync(int[] categoriesIds);
         Task<ProductShortResponse[]> GetProductsWithFilterAsync(FilteredProductsRequest filteredProductsRequest);
-        Task<ProductDetailResponse> GetProductByIdAsync(int id);
-        Task<byte[]> GetProductLowPhoto(Guid photoId);
-        Task<byte[]> GetProductHighPhoto(Guid photoId);
-        Task<string[]> GetProductPhotosPaths(int productId);
-        Task AddProductAsync(AddProductRequest addProductRequest);
-        Task LoadProductPhotoAsync(int productId, string lowResPhotoPath, string highResPhotoPath);
-        Task LoadProductMainPhotoAsync(int productId, string lowResPhotoPath, string highResPhotoPath);
-        Task SetProductMainPhotoAsync(int productId, Guid photoId);
-        Task EditProductInfoAsync(EditEntityRequest editProductRequest);
-        Task DeleteProductAsync(int id);
-        Task RemoveProductPhotoAsync(Guid photoId);
+        Task<ProductDetailResponse> GetProductByIdAsync(Guid id);
+        Task<Guid> AddProductAsync(AddProductRequest addProductRequest);
+        Task<Guid> AddProductPhotoAsync(AddProductPhotoRequest addProductImageRequest);
+        Task SetProductMainPhotoAsync(ProductToPhotoRequest setProductMainPhotoRequest);
+        Task EditProductInfoAsync(EditEntityWithGuidRequest editProductRequest);
+        Task DeleteProductAsync(Guid id);
+        Task DeleteProductPhotoAsync(Guid photoId);
+        Task<PhotoResponse[]> GetAllProductPhotosAsync(Guid productId);
+        Task<PhotoResponse[]> GetAllProductPhotosAsync(int page);
+        Task<PhotoResponse[]> GetAllProductPhotosAsync();
     }
 }

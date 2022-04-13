@@ -12,16 +12,15 @@ namespace VegoAPI.VegoAPI.Models.DBEntities
             ProductsToOrders = new HashSet<ProductsToOrder>();
         }
 
-        public int Id { get; set; }
-        public string PromoCodeId { get; set; }
         public int DeliveryTypeId { get; set; }
         public string ClientName { get; set; }
         public string Address { get; set; }
         public string Phone { get; set; }
         public string Comments { get; set; }
+        public Guid Id { get; set; }
 
         public virtual DeliveryType DeliveryType { get; set; }
-        public virtual PromoCode PromoCode { get; set; }
+        public virtual PromoCodeToOrder IdNavigation { get; set; }
         public virtual ICollection<ProductsToOrder> ProductsToOrders { get; set; }
     }
 }

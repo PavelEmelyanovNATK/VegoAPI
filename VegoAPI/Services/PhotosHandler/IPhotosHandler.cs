@@ -6,7 +6,7 @@ namespace VegoAPI.Services.PhotosHandler
 {
     public interface IPhotosHandler
     {
-        Task<(string, string)> SaveProductPhoto(LoadProductImageRequest loadProductImageRequest);
+        Task<(string, string)> SaveProductPhoto(LoadProductImageFileRequest loadProductImageRequest);
         Task DeleteProductPhoto(string path);
     }
 }

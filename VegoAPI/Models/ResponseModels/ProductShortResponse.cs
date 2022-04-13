@@ -1,8 +1,10 @@
-﻿namespace VegoAPI.Models.ResponseModels
+﻿using System;
+
+namespace VegoAPI.Models.ResponseModels
 {
     public class ProductShortResponse
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Title { get; set; }
         public string Category { get; set; }
         public int CategoryId { get; set; }

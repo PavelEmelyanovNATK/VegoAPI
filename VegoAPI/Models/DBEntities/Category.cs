@@ -5,15 +5,15 @@ using System.Collections.Generic;
 
 namespace VegoAPI.VegoAPI.Models.DBEntities
 {
-    public partial class ProductType
+    public partial class Category
     {
-        public ProductType()
+        public Category()
         {
             Products = new HashSet<Product>();
         }
 
-        public int Id { get; set; }
         public string Name { get; set; }
+        public int Id { get; set; }
 
         public virtual ICollection<Product> Products { get; set; }
     }

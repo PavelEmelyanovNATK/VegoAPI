@@ -26,7 +26,7 @@ namespace VegoAPI.Services.PhotosHandler
             return Task.CompletedTask;
         }
 
-        public async Task<(string, string)> SaveProductPhoto(LoadProductImageRequest loadProductImageRequest)
+        public async Task<(string, string)> SaveProductPhoto(LoadProductImageFileRequest loadProductImageRequest)
         {
             using var memoryStream = new MemoryStream();
             await loadProductImageRequest.ImageFile.CopyToAsync(memoryStream);

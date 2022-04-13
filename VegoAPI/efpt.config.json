@@ -14,19 +14,15 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
+         "Name": "[dbo].[Categories]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[DeliveryTypes]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[Orders]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PhotoToProduct]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[ProductMainPhotos]",
          "ObjectType": 0
       },
       {
@@ -42,11 +38,11 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[ProductTypes]",
+         "Name": "[dbo].[PromoCodes]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[PromoCodes]",
+         "Name": "[dbo].[PromoCodeToOrder]",
          "ObjectType": 0
       }
    ],

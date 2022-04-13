@@ -9,7 +9,7 @@ namespace VegoAPI.Services.ProductTypesRepository
         Task<ProductTypeResponse[]> GetAllProductTypesAsync();
         Task<ProductTypeResponse> GetProductTypeByIdAsync(int id);
         Task AddProductTypeAsync(AddProductTypeRequest addProductTypeRequest);
-        Task EditProductTypeAsync(EditEntityRequest editProductTypeRequest);
+        Task EditProductTypeAsync(EditEntityWithIntIdRequest editProductTypeRequest);
         Task DeleteProductTypeAsync(int productTypeId);
     }
 }

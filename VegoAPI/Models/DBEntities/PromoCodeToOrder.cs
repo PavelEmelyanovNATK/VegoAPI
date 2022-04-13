@@ -5,13 +5,12 @@ using System.Collections.Generic;
 
 namespace VegoAPI.VegoAPI.Models.DBEntities
 {
-    public partial class ProductsToOrder
+    public partial class PromoCodeToOrder
     {
-        public int Count { get; set; }
-        public Guid ProductId { get; set; }
+        public string PromoCode { get; set; }
         public Guid OrderId { get; set; }
 
+        public virtual PromoCode PromoCodeNavigation { get; set; }
         public virtual Order Order { get; set; }
-        public virtual Product Product { get; set; }
     }
 }

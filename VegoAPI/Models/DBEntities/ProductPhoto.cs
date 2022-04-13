@@ -7,18 +7,11 @@ namespace VegoAPI.VegoAPI.Models.DBEntities
 {
     public partial class ProductPhoto
     {
-        public ProductPhoto()
-        {
-            ProductMainPhotos = new HashSet<ProductMainPhoto>();
-            Products = new HashSet<Product>();
-        }
-
-        public Guid Guid { get; set; }
+        public Guid Id { get; set; }
+        public Guid ProductId { get; set; }
         public string LowResPhotoPath { get; set; }
         public string HighResPhotoPath { get; set; }
 
-        public virtual ICollection<ProductMainPhoto> ProductMainPhotos { get; set; }
-
-        public virtual ICollection<Product> Products { get; set; }
+        public virtual Product Product { get; set; }
     }
 }

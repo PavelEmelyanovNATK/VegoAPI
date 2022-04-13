@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using VegoAPI.Models.RequestModels;
 using VegoAPI.Services.ProductsRepository;
+using VegoAPI.Utils;
 
 namespace VegoAPI.Controllers
 {
@@ -24,31 +25,84 @@ namespace VegoAPI.Controllers
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllProducts()
         {
-            return Ok(await _productsRepository.GetAllProductsAsync());
+            try
+            {
+                return Ok(await _productsRepository.GetAllProductsAsync());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+
         }
 
         [HttpGet("get/{id}")]
-        public async Task<IActionResult> GetProductById(int id)
+        public async Task<IActionResult> GetProductById(Guid id)
         {
-            return Ok(await _productsRepository.GetProductByIdAsync(id));
+            try
+            {
+                return Ok(await _productsRepository.GetProductByIdAsync(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+
         }
 
         [HttpPost("get-with-filter")]
         public async Task<IActionResult> GetProductsWithFilter([FromBody] FilteredProductsRequest filteredProductsRequest)
         {
-            return Ok(await _productsRepository.GetProductsWithFilterAsync(filteredProductsRequest));
+            try
+            {
+                return Ok(await _productsRepository.GetProductsWithFilterAsync(filteredProductsRequest));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+
         }
 
-        [HttpGet("get-photo-low/{id}")]
-        public async Task<FileResult> GetLowPhoto(Guid id)
+        [HttpGet("get-all-product-photos/{productId}")]
+        public async Task<IActionResult> GetAllProductPhotos(Guid productId)
         {
-            return File(await _productsRepository.GetProductLowPhoto(id), "image/jpg");
+            try
+            {
+                return Ok(await _productsRepository.GetAllProductPhotosAsync(productId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
         }
 
-        [HttpGet("get-photo-high/{id}")]
-        public async Task<FileResult> GetHighPhoto(Guid id)
+        [HttpGet("get-all-photos-page/{page}")]
+        public async Task<IActionResult> GetAllProductPhotos(int page)
         {
-            return File(await _productsRepository.GetProductHighPhoto(id), "image/jpg");
+            try
+            {
+                return Ok(await _productsRepository.GetAllProductPhotosAsync(page));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+
+            }
+        }
+
+        [HttpGet("get-all-photos")]
+        public async Task<IActionResult> GetAllProductPhotos()
+        {
+            try
+            {
+                return Ok(await _productsRepository.GetAllProductPhotosAsync());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+
+            }
         }
     }
 }

@@ -9,13 +9,13 @@ namespace VegoAPI.VegoAPI.Models.DBEntities
     {
         public PromoCode()
         {
-            Orders = new HashSet<Order>();
+            PromoCodeToOrders = new HashSet<PromoCodeToOrder>();
         }
 
         public string Code { get; set; }
         public double Discount { get; set; }
         public bool IsActual { get; set; }
 
-        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<PromoCodeToOrder> PromoCodeToOrders { get; set; }
     }
 }

@@ -20,29 +20,29 @@ namespace VegoAPI.Services.ProductTypesRepository
 
         public async Task AddProductTypeAsync(AddProductTypeRequest addProductRequest)
         {
-            var productType = new ProductType
+            var productType = new Category
             {
                 Name = addProductRequest.Name
             };
 
-            await _dao.ProductTypes.AddAsync(productType);
+            await _dao.Categories.AddAsync(productType);
             await _dao.SaveChangesAsync();
         }
 
         public async Task DeleteProductTypeAsync(int productTypeId)
         {
-            var productType = await _dao.ProductTypes.FindAsync(productTypeId);
+            var productType = await _dao.Categories.FindAsync(productTypeId);
 
             if(productType is null)
                 return;
 
-            _dao.ProductTypes.Remove(productType);
+            _dao.Categories.Remove(productType);
             await _dao.SaveChangesAsync();
         }
 
-        public async Task EditProductTypeAsync(EditEntityRequest editProductTypeRequest)
+        public async Task EditProductTypeAsync(EditEntityWithIntIdRequest editProductTypeRequest)
         {
-            var productType = await _dao.ProductTypes.FindAsync(editProductTypeRequest.EntityId);
+            var productType = await _dao.Categories.FindAsync(editProductTypeRequest.EntityId);
 
             if (productType is null)
                 return;
@@ -54,7 +54,7 @@ namespace VegoAPI.Services.ProductTypesRepository
         }
 
         public async Task<ProductTypeResponse[]> GetAllProductTypesAsync()
-            => await _dao.ProductTypes
+            => await _dao.Categories
             .Select(pt =>
             new ProductTypeResponse
             {
@@ -65,7 +65,7 @@ namespace VegoAPI.Services.ProductTypesRepository
 
         public async Task<ProductTypeResponse> GetProductTypeByIdAsync(int id)
         {
-            var productType = await _dao.ProductTypes.FindAsync(id);
+            var productType = await _dao.Categories.FindAsync(id);
 
             return new ProductTypeResponse 
             { 
