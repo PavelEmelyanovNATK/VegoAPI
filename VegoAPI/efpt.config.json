@@ -26,6 +26,14 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[OrderStatuses]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[OrderStatusHistories]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[ProductPhotos]",
          "ObjectType": 0
       },

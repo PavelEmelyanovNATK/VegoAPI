@@ -22,6 +22,8 @@ namespace VegoAPI.VegoAPI.Services.DBContext
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<DeliveryType> DeliveryTypes { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
+        public virtual DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ProductPhoto> ProductPhotos { get; set; }
         public virtual DbSet<ProductsToOrder> ProductsToOrders { get; set; }
@@ -70,8 +72,12 @@ namespace VegoAPI.VegoAPI.Services.DBContext
 
                 entity.Property(e => e.Phone)
                     .IsRequired()
-                    .HasMaxLength(10)
+                    .HasMaxLength(20)
                     .IsUnicode(false);
+
+                entity.Property(e => e.RegistrationDate).HasColumnType("datetime");
+
+                entity.Property(e => e.StatusId).HasColumnName("StatusID");
 
                 entity.HasOne(d => d.DeliveryType)
                     .WithMany(p => p.Orders)
@@ -83,6 +89,54 @@ namespace VegoAPI.VegoAPI.Services.DBContext
                     .WithOne(p => p.Order)
                     .HasForeignKey<Order>(d => d.Id)
                     .HasConstraintName("FK_Orders_PromoCodeToOrder");
+
+                entity.HasOne(d => d.Status)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.StatusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Orders_OrderStatuses");
+            });
+
+            modelBuilder.Entity<OrderStatus>(entity =>
+            {
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("ID");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<OrderStatusHistory>(entity =>
+            {
+                entity.Property(e => e.Id)
+                    .HasColumnName("ID")
+                    .HasDefaultValueSql("(newid())");
+
+                entity.Property(e => e.Comment)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Date)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.OrderId).HasColumnName("OrderID");
+
+                entity.Property(e => e.StatusId).HasColumnName("StatusID");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.OrderStatusHistories)
+                    .HasForeignKey(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OrderStatusHistory_Orders");
+
+                entity.HasOne(d => d.Status)
+                    .WithMany(p => p.OrderStatusHistories)
+                    .HasForeignKey(d => d.StatusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OrderStatusHistory_OrderStatuses");
             });
 
             modelBuilder.Entity<Product>(entity =>
@@ -94,9 +148,7 @@ namespace VegoAPI.VegoAPI.Services.DBContext
 
                 entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
 
-                entity.Property(e => e.Description)
-                    .IsRequired()
-                    .HasMaxLength(500);
+                entity.Property(e => e.Description).IsRequired();
 
                 entity.Property(e => e.MainPhotoId).HasColumnName("MainPhotoID");
 
@@ -126,7 +178,6 @@ namespace VegoAPI.VegoAPI.Services.DBContext
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.ProductPhotos)
                     .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ProductPhotos_Products");
             });
 

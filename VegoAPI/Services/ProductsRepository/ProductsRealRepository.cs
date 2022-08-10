@@ -64,7 +64,10 @@ namespace VegoAPI.Services.ProductsRepository
         {
             var product = await _dao.Products.FindAsync(id);
 
-            if (product is null) return;
+            if (product is null) throw new Exception("Товара не существует");
+
+            //if(product.ProductsToOrders.Any(pto => pto.Order.))
+
 
             var photos = product.ProductPhotos.ToArray();
 
@@ -149,6 +152,7 @@ namespace VegoAPI.Services.ProductsRepository
                 MainPhotoId = product.MainPhotoId
             };
         }
+
         public async Task<ProductShortResponse[]> GetProductsByCategoriesAsync(int[] categoriesIds)
         {
             Product[] products;
@@ -185,7 +189,7 @@ namespace VegoAPI.Services.ProductsRepository
 
             if (filteredProductsRequest.CategoriesIds is not null && filteredProductsRequest.CategoriesIds.Length > 0)
                 products = await _dao.Products.Where(p => 
-                filteredProductsRequest.CategoriesIds.Contains(p.CategoryId) && p.Title.Contains(filteredProductsRequest.Filter))
+                filteredProductsRequest.CategoriesIds.Contains(p.CategoryId) && p.Title.Contains(filteredProductsRequest.Filter ?? ""))
                     .ToArrayAsync();
             else
                 products = await _dao.Products.Where(p => p.Title.Contains(filteredProductsRequest.Filter ?? "")).ToArrayAsync();

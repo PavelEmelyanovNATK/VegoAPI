@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using VegoAPI.Models.RequestModels;
+using VegoAPI.Models.ResponseModels;
 using VegoAPI.Services.ProductsRepository;
 using VegoAPI.Utils;
 
@@ -42,6 +44,34 @@ namespace VegoAPI.Controllers
             try
             {
                 return Ok(await _productsRepository.GetProductByIdAsync(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+
+        }
+
+        [HttpGet("get-short/{id}")]
+        public async Task<IActionResult> GetShortProductById(Guid id)
+        {
+            try
+            {
+                var productDetails = await _productsRepository.GetProductByIdAsync(id);
+
+                var mainPhoto = productDetails.Photos.FirstOrDefault(p => p.PhotoId == productDetails.MainPhotoId)?.LowResPath;
+
+                var productShort = new ProductShortResponse
+                {
+                    Id = productDetails.Id,
+                    Title = productDetails.Title,
+                    Category = productDetails.Category,
+                    CategoryId = productDetails.CategoryId,
+                    Price = productDetails.Price,
+                    IsActive = productDetails.IsActive,
+                    ImagePath = mainPhoto
+                };
+                return Ok(productShort);
             }
             catch (Exception ex)
             {

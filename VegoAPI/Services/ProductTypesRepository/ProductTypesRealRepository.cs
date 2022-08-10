@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using VegoAPI.Models.RequestModels;
@@ -35,6 +36,9 @@ namespace VegoAPI.Services.ProductTypesRepository
 
             if(productType is null)
                 return;
+
+            if (productType.Products.Count > 0)
+                throw new Exception("С данной категорией связаны товары. Перед удалением измените категории у всех связанных товаров.");
 
             _dao.Categories.Remove(productType);
             await _dao.SaveChangesAsync();

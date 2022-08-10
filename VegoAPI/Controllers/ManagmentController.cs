@@ -12,6 +12,7 @@ using System.Drawing.Drawing2D;
 using Microsoft.AspNetCore.Hosting;
 using VegoAPI.Services.PhotosHandler;
 using VegoAPI.Models.ResponseModels;
+using VegoAPI.Services.OrdersRepository;
 
 namespace VegoAPI.Controllers
 {
@@ -21,16 +22,16 @@ namespace VegoAPI.Controllers
     {
         private readonly IProductsRepository _productsRepository;
         private readonly IProductTypesRepository _productTypesRepository;
-        private readonly IPhotosHandler _photosHandler;
+        private readonly IOrdersRepository _ordersRepository;
 
         public ManagmentController(
             IProductsRepository productsRepository,
-            IProductTypesRepository productTypesRepository, 
-            IPhotosHandler photosHandler)
+            IProductTypesRepository productTypesRepository,
+            IOrdersRepository ordersRepository)
         {
             _productsRepository = productsRepository;
             _productTypesRepository = productTypesRepository;
-            _photosHandler = photosHandler;
+            _ordersRepository = ordersRepository;
         }
 
         [HttpPost("add-product")]
@@ -126,28 +127,89 @@ namespace VegoAPI.Controllers
         [HttpPost("add-product-photo")]
         public async Task<IActionResult> AddProductPhoto([FromBody] AddProductPhotoRequest addProductImageRequest)
         {
-            var id = await _productsRepository.AddProductPhotoAsync(addProductImageRequest);
+            try
+            {
+                var id = await _productsRepository.AddProductPhotoAsync(addProductImageRequest);
 
-            return Ok(new PhotoAddedResponse { PhotoId = id });
+                return Ok(new PhotoAddedResponse { PhotoId = id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
         }
 
         [HttpPost("set-product-main-photo")]
         public async Task<IActionResult> SetProductMainPhoto([FromBody] ProductToPhotoRequest setProductMainPhotoRequest)
         {
-            await _productsRepository.SetProductMainPhotoAsync(setProductMainPhotoRequest);
-
-            return Ok();
+            try
+            {
+                await _productsRepository.SetProductMainPhotoAsync(setProductMainPhotoRequest);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
         }
 
         [HttpDelete("delete-product-photo/{photoId}")]
         public async Task<IActionResult> DeleteProductPhoto(Guid photoId)
         {
-            await _productsRepository.DeleteProductPhotoAsync(photoId);
-
-            return Ok();
+            try
+            {
+                await _productsRepository.DeleteProductPhotoAsync(photoId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
         }
 
+        [HttpGet("get-orders/{page}/{ordersPerPage}")]
+        public async Task<IActionResult> GetOrders(int page, int ordersPerPage)
+        {
+            if (page < 1) page = 1;
+            if (ordersPerPage < 1) ordersPerPage = 30;
 
+            try
+            {
+                return Ok(await _ordersRepository.GetAllOrdersAsync(page, ordersPerPage));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+        }
+        
+        [HttpGet("get-order-details/{id}")]
+        public async Task<IActionResult> GetOrderDetails(Guid id)
+        {
+            try
+            {
+                return Ok(await _ordersRepository.GetOrderByIdAsync(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+        }
+
+        [HttpPost("change-order-status")]
+        public async Task<IActionResult> ChangeOrderStatus(ChangeOrderStatusRequest changeOrderStatusRequest)
+        {
+            try
+            {
+                await _ordersRepository.ChangeOrderStatusAsync(changeOrderStatusRequest);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message.WrapToArray());
+            }
+        }
 
         ///// <summary>
         ///// Depricated.

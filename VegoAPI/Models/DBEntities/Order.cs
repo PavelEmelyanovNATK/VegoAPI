@@ -9,6 +9,7 @@ namespace VegoAPI.VegoAPI.Models.DBEntities
     {
         public Order()
         {
+            OrderStatusHistories = new HashSet<OrderStatusHistory>();
             ProductsToOrders = new HashSet<ProductsToOrder>();
         }
 
@@ -18,9 +19,13 @@ namespace VegoAPI.VegoAPI.Models.DBEntities
         public string Phone { get; set; }
         public string Comments { get; set; }
         public Guid Id { get; set; }
+        public int StatusId { get; set; }
+        public DateTime RegistrationDate { get; set; }
 
         public virtual DeliveryType DeliveryType { get; set; }
         public virtual PromoCodeToOrder IdNavigation { get; set; }
+        public virtual OrderStatus Status { get; set; }
+        public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; }
         public virtual ICollection<ProductsToOrder> ProductsToOrders { get; set; }
     }
 }

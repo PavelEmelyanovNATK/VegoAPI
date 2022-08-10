@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using VegoAPI.Services.OrdersRepository;
 using VegoAPI.Services.PhotosHandler;
 using VegoAPI.Services.ProductsRepository;
 using VegoAPI.Services.ProductTypesRepository;
@@ -15,5 +16,8 @@ namespace VegoAPI.Services
 
         public static IServiceCollection AddPhotosHandler(this IServiceCollection services)
             => services.AddScoped<IPhotosHandler, PhotosHandler.PhotosHandler>();
+
+        public static IServiceCollection AddOrdersRepository(this IServiceCollection services)
+            => services.AddScoped<IOrdersRepository, OrdersRepository.OrdersRepository>();
     }
 }
